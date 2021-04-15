@@ -84,7 +84,7 @@ void print_dec_bin(unsigned long decimalNum) {
         //shift i bits to the right
         bit = decimalNum >> i;
         //bitwise opeartor & to see if the bit is a 1
-        if(bit & 1 == 1){
+        if((bit & 1) == 1){
             fprintf(stdout, "1 ");
         }
         else{
@@ -117,7 +117,7 @@ unsigned long modular_ex(unsigned long plaintext, unsigned long e, unsigned long
             {
                 nextBit = bit >> 1;
                 //when next bit is 1
-                if(nextBit & 1 == 1){
+                if((nextBit & 1) == 1){
                     unsigned long temp = (res * res) % n;
                     res = (temp * plaintext) % n;
                 }
