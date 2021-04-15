@@ -38,38 +38,36 @@ unsigned long find_e(unsigned long phi){
 //extendedEuclidean distance 
 //Referred the source: https://crypto.stackexchange.com/questions/12150/how-do-i-calculate-the-private-key-in-rsa
 //Referred the source: https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm#Recursive_method_2 Pseudocode section
-unsigned extendedEuclidean(unsigned long e, unsigned long phi, unsigned long* x1, unsigned long* x2){
+long extendedEuclidean(unsigned long e, unsigned long phi, long* a, long* b){
     //ex1+mx2 = 1
     if (e==0){
-        *x1=0;
-        *x2=1;
+        *a=0;
+        *b=1;
         return phi;
     }
     else{
-        unsigned long x3, x4;
+        long x, y;
         //run recursive calls
-        unsigned long gcd;
-        gcd=extendedEuclidean(phi%e, e, &x3, &x4);
+        long gcd;
+        gcd=extendedEuclidean(phi % e, e, &x, &y);
         
         //update the coefficients of e and phi:
         //calculate floor of phi/e
-        *x1 = (-(phi/e)*x3) + x4;
-        *x2 = x3;
+        *a = y - (phi/e)*x;
+        *b = x;
         return gcd;
     }
 
 }
 
-unsigned long find_d(unsigned long e, unsigned long phi){
-    unsigned long x1;
-    unsigned long x2;
+long find_d(unsigned long e, unsigned long phi){
+    long a;
+    long b;
 
-    unsigned long gcd = extendedEuclidean(e, phi, &x1, &x2);
-    fprintf(stdout,"x1: %ul\n", x1);  
-    fprintf(stdout,"x2: %ul\n", x2);  
+    long gcd = extendedEuclidean(e, phi, &a, &b);
     if (gcd == 1)
     {
-        unsigned long d = (x1 % phi + phi) % phi;
+        long d = ((a % phi) + phi) % phi;
         return d;
     }
     else{
@@ -77,20 +75,6 @@ unsigned long find_d(unsigned long e, unsigned long phi){
     }
 }
 
-unsigned long find_d_v1(unsigned long e, unsigned long phi){
-    unsigned long t=0;
-    unsigned long newt = 1;
-    unsigned long r = phi;
-    unsigned long newr = e;
-
-    while (newr != 0)
-    {
-        unsigned long quotient = r/newr;
-
-    }
-    
-
-}
 
 void print_dec_bin(unsigned long decimalNum) {
     int bit;
@@ -151,7 +135,7 @@ unsigned long modular_ex(unsigned long plaintext, unsigned long e, unsigned long
 
 unsigned long modular_ex_v1(unsigned long plaintext, unsigned long e, unsigned long n){
     unsigned long res=1;
-    for (unsigned long i = 0; i < e; i++)
+    for (int i = 0; i < e; i++)
     {
         res = (res*plaintext) % n;
     }
@@ -162,7 +146,7 @@ int main() {
 
     unsigned long primeList[3433];
     FILE* fp;
-    fp = fopen("primelist.txt ","r");
+    fp = fopen("./primelist.txt","r");
     if (fp==NULL)
     {
         fprintf(stderr,"invalid file location");
@@ -171,7 +155,7 @@ int main() {
 
     int index=0;
     unsigned long num;
-    while (fscanf(fp,"%ul",&num) > 0)
+    while (fscanf(fp,"%lu",&num) > 0)
     {   
         primeList[index]=num;
         index ++;
@@ -195,14 +179,14 @@ int main() {
     unsigned long phi = (p-1)*(q-1);
 
     fprintf(stdout,"p = %d, q = %d\n", ((unsigned int) p), (unsigned int) q);
-    fprintf(stdout,"n = %ul, phi = %ul\n", n, phi);
+    fprintf(stdout,"n = %lu, phi = %lu\n", n, phi);
     //find e:
     unsigned long e = find_e(phi);
 
     fprintf(stdout,"e = %d\n", ((unsigned int) e));
 
     //find d:
-    unsigned long d = find_d(e, phi);
+    long d = find_d(e, phi);
     // unsigned long d = find_d(3,11);
     fprintf(stdout,"d = %d\n", ((unsigned int) d)); 
 
@@ -219,21 +203,17 @@ int main() {
         //while loop for user to enter message
         unsigned long userInput;
         fprintf(stdout,"Enter message: \n");
-        scanf("%ul", &userInput);
+        scanf("%lu", &userInput);
 
         unsigned long ciphertext;
         ciphertext = modular_ex(userInput, e, n);
         
-        fprintf(stdout,"c = m^e mod n = %ul\n", ciphertext);  
+        fprintf(stdout,"c = m^e mod n = %lu\n", ciphertext);  
 
         unsigned long decrypttext;
-        // d=137;
-        fprintf(stdout,"d = %ul\n", d);  
-        fprintf(stdout,"c = %ul\n", ciphertext);  
-        fprintf(stdout,"n = %ul\n", n);  
         decrypttext = modular_ex_v1(ciphertext, d, n);
 
-        fprintf(stdout,"c^d mod n = %ul\n", decrypttext);  
+        fprintf(stdout,"c^d mod n = %lu\n", decrypttext);  
     }
     
 
