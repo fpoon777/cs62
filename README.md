@@ -13,3 +13,6 @@ To make cbcctr, simply `run make cbcctr`
 ### run
 To run rsa, use `./rsa`
 To run cbcctr, use `./cbcctr`
+
+### notice
+primelist.txt is assumed to be at the same directory as the rsa
