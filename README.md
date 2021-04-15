@@ -8,7 +8,7 @@ There are two c files: rsa.c is for Q5 and cbcctr.c is for Q3 to make CBC and CT
 ### Make
 To make both, simply run `make`.
 To make rsa, simply run `make rsa`
-To make cbcctr, simply `run make cbcctr`
+To make cbcctr, simply run `make cbcctr`
 
 ### run
 To run rsa, use `./rsa`
