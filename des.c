@@ -358,16 +358,144 @@ void des_encrypt(unsigned char block[8], unsigned char key[8], unsigned char out
 
 }
 
+void cbc_encrypt(unsigned char IV[8],unsigned char plaintext[], unsigned char key[8], int blockNum,unsigned char res[]){
+    unsigned char block[8];
+    unsigned char tempBlock[8];
+    unsigned char outBlock[8];
+    
+    //initializing the block with IV
+    xor(IV, key, tempBlock, 8);
+    des_encrypt(tempBlock, key, outBlock);
+    for (int i = 0; i < 8; i++)
+    {
+        res[i] = outBlock[i];
+    }
+
+    //do chaining
+    int index=8;
+    int blockindex=0;
+    for (int i = 0; i < blockNum-1; i++)
+    {
+        unsigned char newTop[8];
+        //copy outblock as new Top
+        for (int j = 0; j < 8; j++)
+        {
+            newTop[j] = outBlock[j];
+        }
+
+        //get 8 bits from plaintext as a new block
+        for (int j = 0; j < 8; j++)
+        {
+            block[j] = plaintext[blockindex];
+            blockindex++;
+        }
+
+        //xor of plaintext new block and new top block, res -> outBlock
+        xor(block, newTop, tempBlock, 8);
+
+        //encrypt the tempblock with key and get outblock
+        des_encrypt(tempBlock, key, outBlock);
+
+        //copy the result to a large container
+        for (int j = 0; j < 8; j++)
+        {
+            res[index] = outBlock[j];
+            index ++;
+        }
+        
+    }
+
+}
+
+void ctr_encrypt(unsigned char initialCtr, unsigned char plaintext[], unsigned char key[8], int blockNum,unsigned char res[]){
+    unsigned char ctrBlock[8];
+    unsigned char outBlock[8];
+    unsigned char tempBlock[8];
+    unsigned char block[8];
+
+    //fill in 8 spaces with ctr
+    for (int i = 0; i < 8; i++)
+    {
+        ctrBlock[i] = initialCtr;
+    }
+
+    //encrypt the first block, output send to tempblock
+    des_encrypt(ctrBlock, key, tempBlock);
+
+    //copy the plaintext to the block
+    int plaintextIndex=0;
+    for (int i = 0; i < 8; i++)
+    {
+        block[i] = plaintext[plaintextIndex];
+        plaintextIndex++;
+    }
+    //XOR outblock with plaintext   
+    xor(block, tempBlock, outBlock,8);
+
+    //copy the result to res
+    int resIndex=0;
+    for (int i = 0; i < 8; i++)
+    {
+        res[resIndex] = outBlock[i];
+        resIndex++;
+    }
+
+    //encrypt following blocks
+    for (int j = 0; j < blockNum-1; j++)
+    {   
+        //update counters
+        initialCtr++;
+
+        for (int i = 0; i < 8; i++)
+        {
+            ctrBlock[i] = initialCtr;
+        }
+
+        des_encrypt(ctrBlock, key, tempBlock);
+
+        //get the follow 8 bits
+        for (int i = 0; i < 8; i++)
+        {
+            block[i] = plaintext[plaintextIndex];
+            plaintextIndex++;
+        }
+
+        xor(block, tempBlock, outBlock,8);
+        for (int i = 0; i < 8; i++)
+        {
+            res[resIndex] = outBlock[i];
+            resIndex++;
+        }   
+
+    }
+}
+
 int main() {
     //unsigned char plaintext[8] = {0x6d, 0x73, 0x62, 0x72, 0x6f, 0x77, 0x6e, 0x33};
     unsigned char plaintext[8] = {0x02, 0x46, 0x8a, 0xce, 0xec, 0xa8, 0x64, 0x20};
     unsigned char key[8] = {0x0f, 0x15, 0x71, 0xc9, 0x47, 0xd9, 0xe8, 0x59};
     unsigned char ciphertext[8];
 
-    for (int i=0; i<1000000; i++) {
-        des_encrypt(plaintext, key, ciphertext);
-    }
 
-    printf("%s\n", bin_to_string(ciphertext, 8));
+    //CBC mode on 4 blocks
+    unsigned char IV[8] = {0x2d, 0xcc, 0xe2,0x12,0x44,0xdd,0x23,0xa9};
+    unsigned char plaintextCBC[32] = {0x02, 0x46, 0x8a, 0xce, 0xec, 0xa7, 0x64, 0x20,0x8d, 0x78,
+                                    0x9b, 0xad, 0x77, 0x5b, 0x43, 0xee, 0x25,0x9c, 0xff, 0x6e,0xe2, 0x7d,
+                                    0xbc, 0x9a, 0xae, 0xaa, 0xc7, 0x01, 0xb8, 0x32, 0xe7, 0x0c};
+    unsigned char ciphertextCBC[40];
+    
+    printf("CBC result is\n");
+    cbc_encrypt(IV, plaintextCBC,key,5,ciphertextCBC);
+    printf("%s\n", bin_to_string(ciphertextCBC, 40));
+
+    //CTR mode on 4 blocks
+    unsigned char startCtr = 0x00;
+    unsigned char ciphertextCTR[32];
+    printf("CTR result is\n");
+    ctr_encrypt(startCtr,plaintextCBC,key,4,ciphertextCTR);
+    printf("%s\n", bin_to_string(ciphertextCTR, 32));
+    // des_encrypt(plaintext, key, ciphertext);
+
+    // printf("%s\n", bin_to_string(ciphertext, 8));
 
 }
