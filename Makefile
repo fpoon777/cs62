@@ -1,7 +1,7 @@
 # Makefile for Q3 and Q5
 
-PROG = rsa cbcctr
-OBJS = rsa.o cbcctr.o
+PROG = rsa cbcctr q3hw2
+OBJS = rsa.o cbcctr.o q3hw2.o
 LIBS = -lm
 
 CFLAGS = -Wall -pedantic -std=c11 -ggdb
@@ -17,6 +17,8 @@ rsa: rsa.o
 cbcctr: cbcctr.o
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 
+q3hw2: q3hw2.o
+	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 
 clean:
 	rm -f *~ *.o
