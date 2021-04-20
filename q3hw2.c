@@ -121,70 +121,74 @@ long int modexp(long int x, long int y, long int n) {
 }
 
 
-int main(void) {
+long int modexp_en(long int P, long int x, long int y, long int n) {
 
-  int primecount;
-  long int p, q, n, phi, e, d, m, c,am;
-  int i,j;
+  int i;
+  long int val;
+  long int ret = 1; //P is the plaintext
 
-  primecount = primelist();
+  val = y;
 
-  printf("Enter indices for two primes:\n");
-  scanf("%d %d", &i, &j);
-
-  if ( (i==j) || (i >= primecount) || (j >= primecount)) {
-    printf("out of range\n");
-    exit(-1);
-  }
-
-  p = table[i];
-  q = table[j];
-
-  printf("p = %ld, q = %ld\n", p,q);
-  n = p*q;
-  phi = (p-1)*(q-1);
-  printf("n = %ld, phi = %ld\n", n,phi);
-  
-
-  // find e
-  e = 0;
-  for (i = 0; i < phi; i++) {
-    if (phi % table[i]) {
-      e = table[i];
-      break;
+  for (i = MAXMODBITS-1; i >=0; i--) {
+    ret = (ret * ret) % n;
+    
+    if (val >= (1 << i)) {
+      ret = (ret * x) % n;
+      val = val - (1<<i);
     }
   }
-  if (e==0) {
-    printf("didn't find an e!\n");
-    exit(-1);
-  }
 
-  printf("e = %ld\n", e);
+  return ret;
+}
 
-  d = eea(phi,e);
-  while (d < 0) d = d +phi;
 
-  printf("d = %ld\n", d);
+int main(void) {
 
-  bprint("e",e);
-  bprint("d",d);
-  bprint("n",n);
-  
+  long int p, g, k, x, y, P, am, Pp, ykp,c1, c2;
+  long int ykpD, firstPart, secondPart;
+
+  g = 558927443;    //generated from openssl dhparam command
+  p = 801482723;
+
+  printf("p = %ld, g = %ld\n", p,g);
+
+  printf("enter a private key x:\n");
+  scanf("%ld", &x);
+
+  y = modexp(g,x,p);
+  printf("y= %ld\n", y);
 
   while(1) {
 
     printf("Enter message: \n");
-    scanf("%ld",&m);
+    scanf("%ld",&P);
 
-    if ((m < 0)| (m >= n) ) {
-      printf("out of range\n");
-      exit(-1);
-    }
+    printf("enter random number k:\n");
+    scanf("%ld", &k);
+    
+    c1 = modexp(g,k,p);
+    
+    //ab mod m = (a mod m)(b mod m) mod m
+    //Py^k mod p = (P mod p)(y^k mod p) mod p
+    Pp = P % p;
+    ykp=modexp(y,k,p);
+    c2 = (Pp*ykp)%p;
+    printf("c1 = g^k mod p = %ld\n",c1);
+    printf("c2 = Py^k mod p = %ld\n",c2);
+    
+    //decrypt m=c1^(p-x-1)c2 mod p
+    ////first part = c1^(p-x-1) mod p, secondpart=c2 mod p.
+    ykpD = modexp(g, x*k, p);
+    printf("original y^k mod p is %ld, decrypted y^k mod p is %ld\n", ykp, ykpD);
+    
+    firstPart = modexp(c1,p-x-1,p);
+    secondPart = c2 % p;
+    am = (firstPart * secondPart) % p; 
+    //d = eea(p,ykpD);
+    //am = P*ykpD;
 
-    c = modexp(m,e,n);
-    printf("c = m^e mod n = %ld\n", c);
-    am = modexp(c,d,n);
-    printf("c^d mod n = %ld\n", am);
+    //am = modexp(c,d,n);
+    printf("decrypted text is %ld\n", am);
   }
 
 
