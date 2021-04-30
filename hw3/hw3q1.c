@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-// #include <openssl/ssl.h>
+#include <openssl/ssl.h>
 
 // All of the numbers in the permutation tables are 0-indexed.  However, most
 // DES references show them 1-indexed!
@@ -359,7 +359,7 @@ void des_encrypt(unsigned char block[8], unsigned char key[8], unsigned char out
 
 }
 
-void cbc_encrypt(unsigned char IV[8],unsigned char plaintext[], unsigned char key[8], int blockNum,unsigned char hashVal[32]){
+void cbc_encrypt(unsigned char IV[8],unsigned char plaintext[], unsigned char key[8], int blockNum,unsigned char hashVal[8]){
     unsigned char block[8];
     unsigned char tempBlock[8];
     unsigned char outBlock[8];
@@ -413,17 +413,8 @@ void cbc_encrypt(unsigned char IV[8],unsigned char plaintext[], unsigned char ke
     int loc = 0;
     for (int i = 0; i < 8; i++)
     {
-        lastCipherBlock[i]=outBlock[i];
+        hashVal[i]=outBlock[i];
     }
-
-    char* cipherString = malloc(sizeof(char)*8+1);
-    cipherString = bin_to_string(lastCipherBlock,8);
-    cipherString++;
-    cipherString++;
-    printf("%s\n", cipherString);
-
-    //Mac value here
-    //hex value = mac(cipherblock)
 
 }
 
@@ -457,9 +448,9 @@ int main() {
     unsigned char ciphertextCBC[40];
     unsigned char hashval[32];
 
-    printf("CBC result is\n");
+    printf("CBC_MAC result is\n");
     cbc_encrypt(IV, M1,key,5,hashval);
-    // printf("%s\n", bin_to_string(ciphertextCBC, 40));
+    printf("%s\n", bin_to_string(hashVal, 8));
 
     return 0;
 }
