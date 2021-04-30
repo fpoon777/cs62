@@ -418,18 +418,18 @@ void cbc_encrypt(unsigned char IV[8],unsigned char plaintext[], unsigned char ke
 
 }
 
-void q2(unsigned char IV[8],unsigned char M1[], unsigned char M2[], unsigned char key[8], int blockNumM1,int blockNumM2, unsigned char M3[]){
+/*void q2(unsigned char IV[8],unsigned char M1[], unsigned char M2[], unsigned char key[8], int blockNumM1,int blockNumM2, unsigned char M3[]){
     
     //find xor value that makes the result 0
     unsigned char tempBlock[8];
     
-    unsigned char hashVal[32];
+    unsigned char hashVal1[8];
     unsigned char 
 
-    cbc_encrypt(IV, M1,key,blockNumM1,hashVal);
-    xor(hashVal,IV,tempBlock,8);
-
-} 
+    cbc_encrypt(IV, M1,key,blockNumM1,hashVal1);
+    des_encrypt(hashVal1, key, tempBlock);
+    //xor(hashVal,IV,tempBlock,8);
+}*/
 
 
 int main() {
@@ -446,11 +446,20 @@ int main() {
                                     0xeb, 0x3d, 0x26, 0x4c, 0x3e, 0xee, 0x15,0x5c, 0xf2, 0x3e,0xd2, 0xaa,
                                     0xac, 0x93, 0xae, 0xa4, 0xcc, 0x0f, 0xbc, 0x03, 0x07, 0x1c};
     unsigned char ciphertextCBC[40];
-    unsigned char hashval[32];
+    unsigned char hashVal[8];
+    unsigned char hashVal2[8];
+    
 
-    printf("CBC_MAC result is\n");
-    cbc_encrypt(IV, M1,key,5,hashval);
+    //part 1 getting CBC MAC
+    printf("CBC_MAC M1 result is\n");
+    cbc_encrypt(IV, M1,key,5,hashVal);
     printf("%s\n", bin_to_string(hashVal, 8));
+
+    printf("CBC_MAC M2 result is\n");
+    cbc_encrypt(IV, M2,key,5,hashVal2);
+    printf("%s\n", bin_to_string(hashVal2, 8));
+    
+    //part2
 
     return 0;
 }
