@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+// #include <openssl/ssl.h>
 
 // All of the numbers in the permutation tables are 0-indexed.  However, most
 // DES references show them 1-indexed!
@@ -358,10 +359,12 @@ void des_encrypt(unsigned char block[8], unsigned char key[8], unsigned char out
 
 }
 
-void cbc_encrypt(unsigned char IV[8],unsigned char plaintext[], unsigned char key[8], int blockNum,unsigned char res[]){
+void cbc_encrypt(unsigned char IV[8],unsigned char plaintext[], unsigned char key[8], int blockNum,unsigned char hashVal[32]){
     unsigned char block[8];
     unsigned char tempBlock[8];
     unsigned char outBlock[8];
+    int size = (blockNum+1)*8;
+    unsigned char res[size];
     
     //initializing the block with IV
     xor(IV, key, tempBlock, 8);
@@ -403,7 +406,39 @@ void cbc_encrypt(unsigned char IV[8],unsigned char plaintext[], unsigned char ke
             index ++;
         }   
     }
+
+    //hash value
+    unsigned char lastCipherBlock[8];
+    //get the last 8 bytes of ciphertext from CBC
+    int loc = 0;
+    for (int i = 0; i < 8; i++)
+    {
+        lastCipherBlock[i]=outBlock[i];
+    }
+
+    char* cipherString = malloc(sizeof(char)*8+1);
+    cipherString = bin_to_string(lastCipherBlock,8);
+    cipherString++;
+    cipherString++;
+    printf("%s\n", cipherString);
+
+    //Mac value here
+    //hex value = mac(cipherblock)
+
 }
+
+void q2(unsigned char IV[8],unsigned char M1[], unsigned char M2[], unsigned char key[8], int blockNumM1,int blockNumM2, unsigned char M3[]){
+    
+    //find xor value that makes the result 0
+    unsigned char tempBlock[8];
+    
+    unsigned char hashVal[32];
+    unsigned char 
+
+    cbc_encrypt(IV, M1,key,blockNumM1,hashVal);
+    xor(hashVal,IV,tempBlock,8);
+
+} 
 
 
 int main() {
@@ -420,10 +455,11 @@ int main() {
                                     0xeb, 0x3d, 0x26, 0x4c, 0x3e, 0xee, 0x15,0x5c, 0xf2, 0x3e,0xd2, 0xaa,
                                     0xac, 0x93, 0xae, 0xa4, 0xcc, 0x0f, 0xbc, 0x03, 0x07, 0x1c};
     unsigned char ciphertextCBC[40];
+    unsigned char hashval[32];
 
     printf("CBC result is\n");
-    cbc_encrypt(IV, plaintextCBC,key,5,ciphertextCBC);
-    printf("%s\n", bin_to_string(ciphertextCBC, 40));
+    cbc_encrypt(IV, M1,key,5,hashval);
+    // printf("%s\n", bin_to_string(ciphertextCBC, 40));
 
     return 0;
 }
