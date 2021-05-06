@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
  const unsigned char *cp,**cpp;
 
  if( argc < 4) {
-   printf("needs arguments: pubfile hashfile sigfile\n");
+   printf("needs arguments: pubfile hashfile sigfile hashfile2 sigfile2\n");
    return -1;
  }
 
@@ -73,7 +73,53 @@ int main(int argc, char *argv[]) {
  // example code to create and save new keypair
  // that's just like this public one...
  // except with a guessed private key
+/*****************************************************/
 
+FILE  *hashfile_2, *sigfile_2;
+ DSA_SIG *dsig_2;
+ const BIGNUM *r_2, *s_2;
+ BIGNUM *m_2 = BN_new();
+ 
+
+ unsigned char hashbuf_2[BLEN];
+ unsigned char sigbuf_2[BLEN];
+ int hashlen_2, siglen_2;
+ int rc_2;
+ const unsigned char *cp_2,**cpp_2;
+
+ hashfile_2 = fopen(argv[4],"r");
+ sigfile_2 = fopen(argv[5],"r"); 
+
+ hashlen_2 = fread(hashbuf_2,1,BLEN,hashfile_2);
+ siglen_2 = fread(sigbuf_2,1,BLEN,sigfile_2);
+
+ if (hashlen_2 != 20)
+   printf("warning: hash_2 is not a sha-1 hash?\n");
+ 
+ BN_bin2bn(hashbuf_2, hashlen_2, m_2);
+ printf("hash_2 as a bignum  %s\n",BN_bn2hex(m_2));
+
+ cp_2 = &sigbuf_2[0];
+ cpp_2 = &cp_2;
+ 
+ dsig_2 = d2i_DSA_SIG(NULL,cpp_2,siglen_2);
+
+ if (NULL == dsig_2) {
+   printf("warning: signature_2 file was not properly formatted\n");
+   return -1;
+ }
+ 
+ DSA_SIG_get0(dsig_2,&r_2,&s_2);
+ printf("r_2 %s\n",BN_bn2hex(r));
+ printf("s_2 %s\n",BN_bn2hex(s));
+/*****************************************************/
+
+  BIGNUM  *sasb = BN_new();     //SA-SB
+  BIGNUM  *hahb = BN_new();     //HA-HB
+  BN_CTX *ctx = BN_CTX_new();
+
+  BN_mod_sub(sasb, s, s_2, q, ctx);
+  BN_sub(hahb, m, m_2);
  
  {
    DSA *d2 = DSA_new();
@@ -81,6 +127,8 @@ int main(int argc, char *argv[]) {
    BIGNUM *p2,*q2,*g2,*y2;
    FILE *privfile;
 
+   //get a
+   BN_div(a, NULL, hahb, sasb, ctx);
    
    BN_one(a);  // the guess
    p2 = BN_dup(p);
