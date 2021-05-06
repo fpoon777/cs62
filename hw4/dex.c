@@ -110,16 +110,22 @@ FILE  *hashfile_2, *sigfile_2;
  }
  
  DSA_SIG_get0(dsig_2,&r_2,&s_2);
- printf("r_2 %s\n",BN_bn2hex(r));
- printf("s_2 %s\n",BN_bn2hex(s));
+ printf("r_2 %s\n",BN_bn2hex(r_2));
+ printf("s_2 %s\n",BN_bn2hex(s_2));
 /*****************************************************/
 
   BIGNUM  *sasb = BN_new();     //SA-SB
   BIGNUM  *hahb = BN_new();     //HA-HB
+  BIGNUM  *sasbInv = BN_new();
   BN_CTX *ctx = BN_CTX_new();
 
   BN_mod_sub(sasb, s, s_2, q, ctx);
-  BN_sub(hahb, m, m_2);
+  BN_mod_sub(hahb, m, m_2,q,ctx);
+
+  //BN_sub(sasb, s, s_2);
+  //BN_sub(hahb,m,m_2);
+  BN_mod_inverse(sasbInv, sasb, q, ctx);
+
  
  {
    DSA *d2 = DSA_new();
@@ -128,9 +134,11 @@ FILE  *hashfile_2, *sigfile_2;
    FILE *privfile;
 
    //get a
-   BN_div(a, NULL, hahb, sasb, ctx);
+   //BN_div(a, NULL, hahb, sasb, ctx);
+   BN_mod_mul(a, hahb,sasbInv,q,ctx);
+   //BN_mul(a, hahb, sasbInv, ctx);
    
-   BN_one(a);  // the guess
+   //BN_one(a);  // the guess
    p2 = BN_dup(p);
    q2 = BN_dup(q);
    g2 = BN_dup(g);
