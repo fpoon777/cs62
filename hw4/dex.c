@@ -116,6 +116,7 @@ FILE  *hashfile_2, *sigfile_2;
 
   BIGNUM  *sasb = BN_new();     //SA-SB
   BIGNUM  *hahb = BN_new();     //HA-HB
+  BIGNUM  *k = BN_new();
   BIGNUM  *sasbInv = BN_new();
   BN_CTX *ctx = BN_CTX_new();
 
@@ -126,6 +127,15 @@ FILE  *hashfile_2, *sigfile_2;
   //BN_sub(hahb,m,m_2);
   BN_mod_inverse(sasbInv, sasb, q, ctx);
 
+  BN_mod_mul(k, hahb,sasbInv,q,ctx);
+    
+  BIGNUM  *sk = BN_new();
+  BIGNUM  *sk_h = BN_new();
+  BIGNUM  *rInv = BN_new();
+  BN_mod_mul(sk, s, k,q,ctx);
+  BN_mod_sub(sk_h, sk, m,q,ctx);
+  BN_mod_inverse(rInv, r, q, ctx);
+   
  
  {
    DSA *d2 = DSA_new();
@@ -135,7 +145,7 @@ FILE  *hashfile_2, *sigfile_2;
 
    //get a
    //BN_div(a, NULL, hahb, sasb, ctx);
-   BN_mod_mul(a, hahb,sasbInv,q,ctx);
+   BN_mod_mul(a, sk_h,rInv,q,ctx);
    //BN_mul(a, hahb, sasbInv, ctx);
    
    //BN_one(a);  // the guess
